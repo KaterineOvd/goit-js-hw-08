@@ -1,42 +1,36 @@
 import throttle from 'lodash.throttle';
 
-const contactFormRef = document.querySelector('.feedback-form');
-const userData = {};
-const KEY = 'feedback-form-state';
+var throttle = require('lodash.throttle');
 
-// заповнення полів при оновленні
-function fillContactFormRef() {
-    const userDataLS = JSON.parse(localStorage.getItem(KEY));
+const form = document.querySelector('.feedback-form');
+const email = document.querySelector('input');
+const message = document.querySelector('textarea');
 
-    for (const value in userDataLS) {
-        if (userDataLS.hasOwnProperty(value)) {
-            contactFormRef.elements[value].value = userDataLS[value];
-        }
-    }
+const STORAGE_KEY = 'feedback-form-state';
+const formData = {};
+
+function onFormChange(event) {
+  const formData = { email: email.value, message: message.value };
+  const stringifyData = JSON.stringify(formData);
+  localStorage.setItem(STORAGE_KEY, stringifyData);
 }
 
-fillContactFormRef();
-
-// збережння в ЛС при інпуті
-function onContactFormRefInput(event) {
-    const name = event.target.name;
-    const value = event.target.value;
-
-    userData[name] = value;
-
-    localStorage.setItem(KEY, JSON.stringify(userData));
-    // console.log(userData);
+function onFormSubmit(event) {
+  event.preventDefault();
+  event.currentTarget.reset();
+  console.log(JSON.parse(localStorage.getItem(STORAGE_KEY)));
+  localStorage.removeItem(STORAGE_KEY);
 }
 
-// очистка ЛС при сабміті
-function onContactFormRefSubmit(event) {
-    event.preventDefault();
-    event.target.reset();
-    localStorage.removeItem(KEY);
-
-    console.log(userData);
+function onFormReset(event) {
+  let savedMessage = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  if (savedMessage) {
+    email.value = savedMessage.email;
+    message.value = savedMessage.message;
+  }
 }
 
+form.addEventListener('input', throttle(onFormChange, 500));
+form.addEventListener('submit', onFormSubmit);
 
-contactFormRef.addEventListener('input', throttle(onContactFormRefInput, 500));
-contactFormRef.addEventListener('submit', onContactFormRefSubmit)
+onFormReset();
